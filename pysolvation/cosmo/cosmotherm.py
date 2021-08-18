@@ -169,3 +169,15 @@ notempty wtln ehfile
         os.remove("".join((self.path,".tab")))
         os.remove("".join((self.path,".out")))
         os.remove("".join((self.path,"_status.xml")))
+
+    def run(self):
+        """
+        Run the COSMOtherm job
+        """
+        self.generate_input_file()
+        if not "COSMOTHERM" in os.environ.keys():
+            raise ValueError("""$COSMOTHERM environment variable not defined assign
+                path of the COSMOtherm executable ex: /home/gridsan/groups/RMG/Software/COSMOtherm2021/COSMOtherm/BIN-LINUX/cosmotherm""")
+        cmd = [os.environ["COSMOTHERM"], "".join((self.path,".inp"))]
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+        self.process_output()
