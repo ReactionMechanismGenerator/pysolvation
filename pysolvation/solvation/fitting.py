@@ -38,3 +38,44 @@ def linear_fit(A,b):
     ind = np.argmin(vals)
 
     return xs[ind],vals[ind],methods[ind]
+
+def fit_solvent_parameters(solute_db,dGsolv_dict,dHsolv_dict,T=298.15):
+    """
+    fits solvent parameters to the species in the dGsolv_dict nad dHsolv_dict
+    where these dictionaries map inchis to dG or dH in J/mol
+    assumes each of these species is in solute_db
+    returns a dictionary mapping labels to the fitted solvent parameters
+    the MAE in dG and the MAE in dH in J/mol
+    """
+    inchis = list(dGsolv_dict.keys())
+    dGsolv = [dGsolv_dict[inchi] for inchi in inchis]
+    dHsolv = [dHsolv_dict[inchi] for inchi in inchis]
+
+    log10K = (-np.array(dGsolv)/(np.log(10)*8.314*298.15))
+    dHsolvkJmol = np.array(dHsolv)/1000.0
+    Es = [solute_db.get_species_inchi(inchi).E for inchi in inchis]
+    Ss = [solute_db.get_species_inchi(inchi).S for inchi in inchis]
+    As = [solute_db.get_species_inchi(inchi).A for inchi in inchis]
+    Bs = [solute_db.get_species_inchi(inchi).B for inchi in inchis]
+    Ls = [solute_db.get_species_inchi(inchi).L for inchi in inchis]
+    A = np.array([Es,Ss,As,Bs,Ls,np.ones(len(Es))]).T
+
+    dG_params,MAE_log10K,_ = linear_fit(A,log10K)
+    dH_params,MAE_dHsolvkJmol,_ = linear_fit(A,dHsolvkJmol)
+
+    param_dict = dict()
+    param_dict["e_g"] = dG_params[0]
+    param_dict["s_g"] = dG_params[1]
+    param_dict["a_g"] = dG_params[2]
+    param_dict["b_g"] = dG_params[3]
+    param_dict["l_g"] = dG_params[4]
+    param_dict["c_g"] = dG_params[5]
+
+    param_dict["e_h"] = dH_params[0]
+    param_dict["s_h"] = dH_params[1]
+    param_dict["a_h"] = dH_params[2]
+    param_dict["b_h"] = dH_params[3]
+    param_dict["l_h"] = dH_params[4]
+    param_dict["c_h"] = dH_params[5]
+
+    return param_dict,MAE_log10K*np.log(10.0)*8.314*T,MAE_dHsolvkJmol*1000.0
