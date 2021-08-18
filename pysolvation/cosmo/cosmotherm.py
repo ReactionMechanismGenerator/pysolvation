@@ -113,3 +113,59 @@ notempty wtln ehfile
                 f.write("flashpoint tc=25.0 x={"+mole_fraction_string+"}use_tboil use_pvapt\n")
 
         return
+
+    def process_output(self):
+        """
+        Read output from .tab file
+        Store the output in a COSMOOutput object
+        Delete all files associated with the job
+        """
+        index = 0
+        jobtype = ""
+        with open("".join((self.path,".tab")), 'r') as f:
+            for line in f.readlines():
+
+                spl = line.split()
+                if len(spl) > 0:
+                    if spl[0] == "Property":
+                        if jobtype == "Henry law coefficients H":
+                            self.cosmo_outputs.append(COSMOOutput(self.species,self.mole_fractions,
+                                                                      H=Hs,Lngamma=Lngammas,Pvap=Pvaps,
+                                                                      Gsolv=Gsolvs,T=self.Tlist[index-1]))
+                        jobtype = " ".join(spl[4:-1])
+                    s = line.split()[0].strip()
+                else:
+                    s = ""
+
+                if s.isdigit() and jobtype == "Henry law coefficients H":
+                    if s == "1":
+                        index += 1
+                        Hs = []
+                        Lngammas = []
+                        Pvaps = []
+                        Gsolvs = []
+                    outs = line.split()
+                    H = outs[2]
+                    Lngamma = outs[3]
+                    Pvap = outs[4]
+                    Gsolv = outs[5]
+                    Hs.append(float(H)*100000.0)
+                    Lngammas.append(float(Lngamma))
+                    Pvaps.append(float(Pvap)*100000.0)
+                    Gsolvs.append(float(Gsolv)*4184.0)
+
+                elif s != "" and s[0].isdigit() and jobtype == "Flash point temperature":
+                    Tflash = float(spl[0])
+                    PVsat = float(spl[1])*100.0
+                    self.cosmo_outputs.append(COSMOOutput(self.species,self.mole_fractions,
+                                                          Tflash=Tflash,PVsat=PVsat))
+            else:
+                if jobtype == "Henry law coefficients H":
+                    self.cosmo_outputs.append(COSMOOutput(self.species,self.mole_fractions,
+                                                                  H=Hs,Lngamma=Lngammas,Pvap=Pvaps,
+                                                                  Gsolv=Gsolvs,T=self.Tlist[index-1]))
+
+        os.remove("".join((self.path,".inp")))
+        os.remove("".join((self.path,".tab")))
+        os.remove("".join((self.path,".out")))
+        os.remove("".join((self.path,"_status.xml")))
