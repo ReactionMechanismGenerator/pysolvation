@@ -212,3 +212,30 @@ def calculate_dG_dH_solutes(solvent_mole_fractions,cosmo_solute_db,T=298.15,dT=1
             print(solute.smiles)
 
     return dGsolv_dict,dHsolv_dict
+
+def calculate_dG_dH_solvents(cosmo_solute,cosmo_solvents,T=298.15,dT=1.0):
+    """
+    Primarily for calculating solute parameters
+    takes in a solute COSMOSpecies object
+    and a list of Solvent objects
+    generates dictionaries mapping solvent inchis to dGsolv and dHsolv
+    """
+    dGsolv_dict = dict()
+    dHsolv_dict = dict()
+    for solvent in cosmo_solvents:
+        try:
+            job = COSMOJob(species=spcs,mole_fractions={solvent:1.0,cosmo_solute:0.0},
+                       cosmo_path=cosmotherm2021_path,cosmo_executable=cosmotherm_command,
+                       path=solvent.name,Tlist=[T-dT,T,T+dT])
+            job.run()
+            Gsolvs = [output.Gsolv[cosmo_solute] for output in job.cosmo_outputs]
+            Gsolv = Gsolvs[1]
+            Ssolv = -(Gsolvs[2]-Gsolvs[0])/(2.0*dT)
+            Hsolv = Gsolv + T*Ssolv
+            dGsolv_dict[solvent.inchi] = Gsolv
+            dHsolv_dict[solvent.inchi] = Hsolv
+        except:
+            print("Couldn't run:")
+            print(solute.smiles)
+
+    return dGsolv_dict,dHsolv_dict
