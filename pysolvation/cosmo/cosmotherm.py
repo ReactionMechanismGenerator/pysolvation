@@ -181,3 +181,34 @@ notempty wtln ehfile
         cmd = [os.environ["COSMOTHERM"], "".join((self.path,".inp"))]
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
         self.process_output()
+
+def calculate_dG_dH_solutes(solvent_mole_fractions,cosmo_solute_db,T=298.15,dT=1.0):
+    """
+    Primarily for calculating solvent parameters
+    takes in the dictionary of mole fractions {COSMOSpecies:0.2}
+    and a database of Solute objects
+    generates dictionaries mapping solute inchis to dGsolv and dHsolv
+    """
+    spcs = list(solvent_mole_fractions.keys())
+    spcs.append(solute)
+    dGsolv_dict = dict()
+    dHsolv_dict = dict()
+    for solute in cosmo_solute_db.spcs:
+        mole_fractions = deepcopy(solvent_mole_fractions)
+        solvent_mole_fractions[solute] = 0.0
+        try:
+            job = COSMOJob(species=spcs,mole_fractions=mole_fractions,
+                       cosmo_path=cosmotherm2021_path,cosmo_executable=cosmotherm_command,
+                       path=solute.name,Tlist=[T-dT,T,T+dT])
+            job.run()
+            Gsolvs = [output.Gsolv[solute] for output in job.cosmo_outputs]
+            Gsolv = Gsolvs[1]
+            Ssolv = -(Gsolvs[2]-Gsolvs[0])/(2.0*dT)
+            Hsolv = Gsolv + T*Ssolv
+            dGsolv_dict[solute.inchi] = Gsolv
+            dHsolv_dict[solute.inchi] = Hsolv
+        except:
+            print("Couldn't run:")
+            print(solute.smiles)
+
+    return dGsolv_dict,dHsolv_dict
