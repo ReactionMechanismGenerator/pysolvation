@@ -1,4 +1,4 @@
-from database import InchiKeyedDatabase
+from pysolvation.database import InchiKeyedDatabase
 import pandas as pd
 
 class COSMOSpecies:
