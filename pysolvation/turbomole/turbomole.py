@@ -45,13 +45,13 @@ class TurbomoleJob:
         checks that the output file is there
         """
         os.rename(os.path.join(self.path,"CosmofilesBP-TZVPD-FINE-COSMO-SP",self.name+".cosmo"),
-                 os.path.join(self.path,self.name+".cosmo"))
+                 os.path.join(self.path,self.name+"_c0.cosmo"))
         os.rename(os.path.join(self.path,"EnergyfilesBP-TZVPD-FINE-COSMO-SP",self.name+".energy"),
-                 os.path.join(self.path,self.name+".energy"))
-        if os.path.isfile(os.path.join(self.path,self.name+".energy")):
-            self.output_energy_file = os.path.abspath(os.path.join(self.path,self.name+".energy"))
-        if os.path.isfile(os.path.join(self.path,self.name+".cosmo")):
-            self.output_cosmo_file = os.path.abspath(os.path.join(self.path,self.name+".cosmo"))
+                 os.path.join(self.path,self.name+"_c0.energy"))
+        if os.path.isfile(os.path.join(self.path,self.name+"_c0.energy")):
+            self.output_energy_file = os.path.abspath(os.path.join(self.path,self.name+"_c0.energy"))
+        if os.path.isfile(os.path.join(self.path,self.name+"_c0.cosmo")):
+            self.output_cosmo_file = os.path.abspath(os.path.join(self.path,self.name+"_c0.cosmo"))
         os.remove(os.path.join(self.path,"xyz",self.name+".xyz"))
         os.remove(os.path.join(self.path,self.name+".txt"))
 
