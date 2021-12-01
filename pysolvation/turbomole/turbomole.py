@@ -1,5 +1,6 @@
 import os
 import subprocess
+from cosmo.cosmotherm import COSMOSpecies
 
 class TurbomoleJob:
     """
@@ -66,3 +67,10 @@ class TurbomoleJob:
         cmd = ['calculate', '-l', self.name+'.txt','-m',self.energy_level,'-f','xyz','-din','xyz','>',self.name+'.log']
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
         self.process_output()
+
+def turbomoletospecies(name,inchi,smiles,job):
+    if not isinstance(job,list):
+        path = os.path.split(job.output_cosmo_file)[0]
+        return COSMOSpecies(name,inchi,smiles,1,path)
+    else:
+        raise ValueError("Cannot handle more than 1 conformer yet")
