@@ -149,9 +149,18 @@ notempty wtln ehfile
                     Lngamma = outs[3]
                     Pvap = outs[4]
                     Gsolv = outs[5]
-                    Hs.append(float(H)*100000.0)
-                    Lngammas.append(float(Lngamma))
-                    Pvaps.append(float(Pvap)*100000.0)
+                    if H != "NA":
+                        Hs.append(float(H)*100000.0)
+                    else:
+                        Hs.append(None)
+                    if Lngamma != "NA":
+                        Lngammas.append(float(Lngamma))
+                    else:
+                        Lngammas.append(None)
+                    if Pvap != "NA":
+                        Pvaps.append(float(Pvap)*100000.0)
+                    else:
+                        Pvaps.append(None)
                     Gsolvs.append(float(Gsolv)*4184.0)
 
                 elif s != "" and s[0].isdigit() and jobtype == "Flash point temperature":
@@ -236,6 +245,6 @@ def calculate_dG_dH_solvents(cosmo_solute,cosmo_solvents,T=298.15,dT=1.0):
             dHsolv_dict[solvent.inchi] = Hsolv
         except:
             print("Couldn't run:")
-            print(solute.smiles)
+            print(solvent.smiles)
 
     return dGsolv_dict,dHsolv_dict
