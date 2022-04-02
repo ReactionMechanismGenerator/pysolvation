@@ -202,13 +202,11 @@ def calculate_dG_dH_solutes(solvent_mole_fractions,cosmo_solute_db,T=298.15,dT=1
     dGsolv_dict = dict()
     dHsolv_dict = dict()
     for solute in cosmo_solute_db.spcs:
-        spcs = list(solvent_mole_fractions.keys())
-        spcs.append(solute)
         mole_fractions = deepcopy(solvent_mole_fractions)
-        solvent_mole_fractions[solute] = 0.0
+        mole_fractions[solute] = 0.0
+        spcs = list(mole_fractions.keys())
         try:
             job = COSMOJob(species=spcs,mole_fractions=mole_fractions,
-                       cosmo_path=cosmotherm2021_path,cosmo_executable=cosmotherm_command,
                        path=solute.name,Tlist=[T-dT,T,T+dT])
             job.run()
             Gsolvs = [output.Gsolv[solute] for output in job.cosmo_outputs]
@@ -235,7 +233,6 @@ def calculate_dG_dH_solvents(cosmo_solute,cosmo_solvents,T=298.15,dT=1.0):
     for solvent in cosmo_solvents:
         try:
             job = COSMOJob(species=spcs,mole_fractions={solvent:1.0,cosmo_solute:0.0},
-                       cosmo_path=cosmotherm2021_path,cosmo_executable=cosmotherm_command,
                        path=solvent.name,Tlist=[T-dT,T,T+dT])
             job.run()
             Gsolvs = [output.Gsolv[cosmo_solute] for output in job.cosmo_outputs]
