@@ -1,5 +1,6 @@
 import os
 import subprocess
+from copy import deepcopy
 
 class COSMOOutput:
     """
