@@ -198,11 +198,11 @@ def calculate_dG_dH_solutes(solvent_mole_fractions,cosmo_solute_db,T=298.15,dT=1
     and a database of Solute objects
     generates dictionaries mapping solute inchis to dGsolv and dHsolv
     """
-    spcs = list(solvent_mole_fractions.keys())
-    spcs.append(solute)
     dGsolv_dict = dict()
     dHsolv_dict = dict()
     for solute in cosmo_solute_db.spcs:
+        spcs = list(solvent_mole_fractions.keys())
+        spcs.append(solute)
         mole_fractions = deepcopy(solvent_mole_fractions)
         solvent_mole_fractions[solute] = 0.0
         try:
