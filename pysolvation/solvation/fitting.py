@@ -79,3 +79,44 @@ def fit_solvent_parameters(solute_db,dGsolv_dict,dHsolv_dict,T=298.15):
     param_dict["c_h"] = dH_params[5]
 
     return param_dict,MAE_log10K*np.log(10.0)*8.314*T,MAE_dHsolvkJmol*1000.0
+
+def fit_solute_parameters(solvent_db,dGsolv_dict,dHsolv_dict,T=298.15):
+    """
+    fits solute parameters to the species in the dGsolv_dict and dHsolv_dict
+    where these dictionaries map inchis to dG or dH in J/mol
+    assumes each of these species is in solute_db
+    returns a dictionary mapping labels to the fitted solvent parameters
+    the MAE in dG and the MAE in dH in J/mol
+    """
+    inchis = list(dGsolv_dict.keys())
+    dGsolv = [dGsolv_dict[inchi] for inchi in inchis]
+    dHsolv = [dHsolv_dict[inchi] for inchi in inchis]
+
+    log10K = (-np.array(dGsolv)/(np.log(10)*8.314*T))
+    dHsolvkJmol = np.array(dHsolv)/1000.0
+    A = []
+    b = []
+    scalefactor = np.log(10)*8.314*T/1000.0
+    for i,inchi in enumerate(inchis):
+        solv = solvent_db.get_species_inchi(inchi)
+        if solv.cg:
+            print(solv.smiles)
+            A.append((scalefactor*np.array([solv.eg,solv.sg,solv.ag,solv.bg,solv.lg])).tolist())
+            b.append((log10K[i]-solv.cg)*scalefactor)
+#         if solv.ch:
+#             A.append([solv.eh,solv.sh,solv.ah,solv.bh,solv.lh])
+#             b.append(dHsolvkJmol[i]-solv.ch)
+
+    A = np.array(A)
+    b = np.array(b)
+
+    params,MAE,_ = linear_fit(A,b)
+
+    param_dict = dict()
+    param_dict["E"] = params[0]
+    param_dict["S"] = params[1]
+    param_dict["A"] = params[2]
+    param_dict["B"] = params[3]
+    param_dict["L"] = params[4]
+
+    return param_dict,MAE*1000
