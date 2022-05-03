@@ -1,7 +1,7 @@
 # pysolvation
 
 Python package for calculating solution thermochemical parameters. Includes a
-limited wrapper for COSMOtherm that can handle GSOLV, henry and flashpoint jobs and tools for fitting Abraham solvent and solute parameters.
+limited wrapper for COSMOtherm that can handle GSOLV, henry and flashpoint jobs and tools for fitting Abraham solvent and solute parameters and a limited wrapper for Turbomole calculations.
 
 To use the COSMOtherm wrapper users should define the environment variables:
 
