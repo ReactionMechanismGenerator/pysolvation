@@ -18,7 +18,7 @@ def linear_fit(A,b):
     lrparam = reg.coef_.tolist()
     lrparam[-1] = reg.intercept_
 
-    param = least_squares(loss_function, lrparam, args=(A,log10K))
+    param = least_squares(loss_function, lrparam, args=(A,b))
     lsparam = param.x
 
     bound   = [(-5, 10), # (lower bound for e,  upper bound for e)
@@ -28,7 +28,7 @@ def linear_fit(A,b):
                        (-1, 3), # (lower bound for l, upper bound for l)
                        (-6, 6)] # (lower bound for c, upper bound for c)
 
-    param   = dual_annealing(loss_function,bound,args=(A,log10K))
+    param   = dual_annealing(loss_function,bound,args=(A,b))
 
     daparam = param.x
 

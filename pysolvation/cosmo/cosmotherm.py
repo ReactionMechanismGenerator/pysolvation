@@ -1,5 +1,6 @@
 import os
 import subprocess
+from copy import deepcopy
 
 class COSMOOutput:
     """
@@ -149,9 +150,18 @@ notempty wtln ehfile
                     Lngamma = outs[3]
                     Pvap = outs[4]
                     Gsolv = outs[5]
-                    Hs.append(float(H)*100000.0)
-                    Lngammas.append(float(Lngamma))
-                    Pvaps.append(float(Pvap)*100000.0)
+                    if H != "NA":
+                        Hs.append(float(H)*100000.0)
+                    else:
+                        Hs.append(None)
+                    if Lngamma != "NA":
+                        Lngammas.append(float(Lngamma))
+                    else:
+                        Lngammas.append(None)
+                    if Pvap != "NA":
+                        Pvaps.append(float(Pvap)*100000.0)
+                    else:
+                        Pvaps.append(None)
                     Gsolvs.append(float(Gsolv)*4184.0)
 
                 elif s != "" and s[0].isdigit() and jobtype == "Flash point temperature":
@@ -189,16 +199,14 @@ def calculate_dG_dH_solutes(solvent_mole_fractions,cosmo_solute_db,T=298.15,dT=1
     and a database of Solute objects
     generates dictionaries mapping solute inchis to dGsolv and dHsolv
     """
-    spcs = list(solvent_mole_fractions.keys())
-    spcs.append(solute)
     dGsolv_dict = dict()
     dHsolv_dict = dict()
     for solute in cosmo_solute_db.spcs:
         mole_fractions = deepcopy(solvent_mole_fractions)
-        solvent_mole_fractions[solute] = 0.0
+        mole_fractions[solute] = 0.0
+        spcs = list(mole_fractions.keys())
         try:
             job = COSMOJob(species=spcs,mole_fractions=mole_fractions,
-                       cosmo_path=cosmotherm2021_path,cosmo_executable=cosmotherm_command,
                        path=solute.name,Tlist=[T-dT,T,T+dT])
             job.run()
             Gsolvs = [output.Gsolv[solute] for output in job.cosmo_outputs]
@@ -225,7 +233,6 @@ def calculate_dG_dH_solvents(cosmo_solute,cosmo_solvents,T=298.15,dT=1.0):
     for solvent in cosmo_solvents:
         try:
             job = COSMOJob(species=spcs,mole_fractions={solvent:1.0,cosmo_solute:0.0},
-                       cosmo_path=cosmotherm2021_path,cosmo_executable=cosmotherm_command,
                        path=solvent.name,Tlist=[T-dT,T,T+dT])
             job.run()
             Gsolvs = [output.Gsolv[cosmo_solute] for output in job.cosmo_outputs]
@@ -236,6 +243,6 @@ def calculate_dG_dH_solvents(cosmo_solute,cosmo_solvents,T=298.15,dT=1.0):
             dHsolv_dict[solvent.inchi] = Hsolv
         except:
             print("Couldn't run:")
-            print(solute.smiles)
+            print(solvent.smiles)
 
     return dGsolv_dict,dHsolv_dict
