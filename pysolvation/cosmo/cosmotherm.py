@@ -118,7 +118,7 @@ notempty wtln ehfile
             if "flashpoint" in self.requested_outputs:
                 f.write("flashpoint tc=25.0 x={"+mole_fraction_string+"}use_tboil use_pvapt\n")
             if 'boilingpoint' in self.requested_outputs:
-                f.write("pvap p_pa="+str(self.P)" plogstep=10 x={"+mole_fraction_string+"} tc=0.0")
+                f.write("pvap p_pa="+str(self.P)+" plogstep=10 x={"+mole_fraction_string+"} tc=0.0")
         return
 
     def process_output(self):
