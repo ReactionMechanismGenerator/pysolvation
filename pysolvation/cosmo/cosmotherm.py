@@ -175,7 +175,7 @@ notempty wtln ehfile
                     PVsat = float(spl[1])*100.0
                     self.cosmo_outputs.append(COSMOOutput(self.species,self.mole_fractions,
                                                           Tflash=Tflash,PVsat=PVsat))
-                elif s != "" and s[0].isdigit() and jobtype = "Vapor pressures":
+                elif s != "" and s[0].isdigit() and jobtype == "Vapor pressures":
                     Tb =  float(spl[0])
                     self.cosmo_outputs.append(COSMOOutput(self.species,self.mole_fractions,
                                                           Tb=Tb))
