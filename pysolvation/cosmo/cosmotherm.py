@@ -9,7 +9,7 @@ class COSMOOutput:
     store results of GSOLV henry and flashpoint calculations
     """
     def __init__(self,spcs,mole_fractions,H=None,Lngamma=None,Pvap=None,
-                 Gsolv=None,T=None,Tflash=None,PVsat=None):
+                 Gsolv=None,T=None,Tflash=None,PVsat=None,Tb=None):
         self.mole_fractions = mole_fractions
         if H:
             self.H = {spcs[i]:H[i] for i in range(len(spcs))}
@@ -39,6 +39,10 @@ class COSMOOutput:
             self.PVsat = PVsat
         else:
             self.PVsat = None
+        if Tb:
+            self.Tb = Tb
+        else:
+            self.Tb = None
 
 class COSMOJob:
     """
@@ -52,10 +56,10 @@ class COSMOJob:
     path = /directory/H2O will give you /directory/H2O.inp /directory/H2O.tab etc.
     the COSMOOutput objects are stored in the cosmo_outputs attribute
     """
-    supported_outputs = ["GSOLV","henry","flashpoint"]
+    supported_outputs = ["GSOLV","henry","flashpoint","boilingpoint"]
 
     def __init__(self,species,mole_fractions=None,requested_outputs=["GSOLV"],Tlist=[298.0],path="",
-                 level="TZVPD-FINE"):
+                 level="TZVPD-FINE",P=101325.0):
         if mole_fractions is None and len(species) == 1:
             mole_fractions = {species[0]:1.0}
         elif mole_fractions is None:
@@ -69,6 +73,7 @@ class COSMOJob:
         self.path = path #no suffix path
         self.cosmo_outputs = []
         self.level = level
+        self.P = P
 
     def generate_input_file(self):
         """
@@ -112,7 +117,8 @@ notempty wtln ehfile
                     f.write("henry xh={"+mole_fraction_string + "} tk=" + str(T) + " GSOLV \n")
             if "flashpoint" in self.requested_outputs:
                 f.write("flashpoint tc=25.0 x={"+mole_fraction_string+"}use_tboil use_pvapt\n")
-
+            if 'boilingpoint' in self.requested_outputs:
+                f.write("pvap p_pa={"+"} plogstep=10 x={"+mole_fraction_string+"} tc=0.0")
         return
 
     def process_output(self):
@@ -169,6 +175,10 @@ notempty wtln ehfile
                     PVsat = float(spl[1])*100.0
                     self.cosmo_outputs.append(COSMOOutput(self.species,self.mole_fractions,
                                                           Tflash=Tflash,PVsat=PVsat))
+                elif s != "" and s[0].isdigit() and jobtype = "Vapor pressures":
+                    Tb =  float(spl[0])
+                    self.cosmo_outputs.append(COSMOOutput(self.species,self.mole_fractions,
+                                                          Tb=Tb))
             else:
                 if jobtype == "Henry law coefficients H":
                     self.cosmo_outputs.append(COSMOOutput(self.species,self.mole_fractions,
